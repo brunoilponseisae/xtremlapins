@@ -8,3 +8,8 @@
     align-items: center;
     justify-content: center;
 }
+
+.labelValue {
+    display: flex;
+    justify-content: space-between;
+}
