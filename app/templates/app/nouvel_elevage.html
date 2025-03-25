@@ -1,0 +1,11 @@
+{% extends "app/_base.html" %}
+{% load static %}
+{% load bootstrap5 %}
+
+{% block content %}      
+      <form class="formset" method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% bootstrap_button button_type="submit" content="Démarrer" %}
+      </form>
+{% endblock %}
