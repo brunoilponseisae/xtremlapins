@@ -1,0 +1,10 @@
+.navbar .logo {
+    width:48px;
+    height: 48px;
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
