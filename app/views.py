@@ -1,7 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Elevage, Individu
-from .forms import NouvelElevageForm
+from .forms import NouvelElevageForm, ActionElevageForm
 import random
+
+PRIX_GRAMME_NOURITURE_CENTS=0.1
+PRIX_VENTE_LAPIN_CENTS=100
+PRIX_CAGE_CENTS=100
+CONSOMMATION_NOURITURE_GRAMMES_2_MOIS=100
+CONSOMMATION_NOURITURE_GRAMMES_3_MOIS=250
 
 def index(request):
     return render(request, "app/index.html", {})
@@ -15,11 +21,13 @@ def nouvel_elevage(request):
             
             Individu(elevage=elevage, 
                                 sexe="M",
-                                moisNaissance=0
+                                moisNaissance=-3,
+                                moisGravide=None
                                 ).save()
             Individu(elevage=elevage, 
                                 sexe="F",
-                                moisNaissance=0
+                                moisNaissance=-3,
+                                moisGravide=None
                                 ).save()
             for i in range(nombreLapins-2):
                 sexe = "F"
@@ -27,15 +35,16 @@ def nouvel_elevage(request):
                     sexe = "M"
                 Individu(elevage=elevage, 
                     sexe=sexe,
-                    moisNaissance=0
+                    moisNaissance=-3,
+                    moisGravide=None
                     ).save()
             return redirect("voir_elevage", elevage.id)
     else:
         form = NouvelElevageForm({
                           "nom": "Mon elevage",
-                          "nouritureGrammes": "1000",
+                          "nouritureGrammes": 10000,
                           "cages": 1,
-                          "argentCents": 10 ,
+                          "argentCents": 1000 ,
                           "nombreLapins": 2
                           })
         
@@ -45,4 +54,53 @@ def nouvel_elevage(request):
 
 def voir_elevage(request, pk):
     elevage = get_object_or_404(Elevage, pk=pk)
-    return render(request, "app/voir_elevage.html", { "elevage": elevage})
+    error = None
+    if request.method == "POST":
+        form = ActionElevageForm(request.POST)
+        if form.is_valid():
+            nouritureAcheteeGrammes = form.cleaned_data['nouritureAcheteeGrammes']
+            lapinsVendus = form.cleaned_data['lapinsVendus']
+            cagesAchetees = form.cleaned_data['cagesAchetees']
+
+            depenses = PRIX_CAGE_CENTS * cagesAchetees + PRIX_GRAMME_NOURITURE_CENTS * nouritureAcheteeGrammes
+            recettes = lapinsVendus * PRIX_VENTE_LAPIN_CENTS
+            balanceArgent = elevage.argentCents + recettes - depenses
+            
+            if len(elevage.lapins.all()) < lapinsVendus:
+                error = "Vous essayez de vendre plus de lapin que vous n'en avez."
+                
+            if balanceArgent < 0:
+                error = f"Vous n'avez pas assez d'argent pour ces achats (manque {-balanceArgent}€). Vendez plus de lapins!"
+
+            if not error:
+                nourritureConsommee = 0
+                for lapin in elevage.lapins.all():
+                    # Consommation de nouriture
+                    if lapin.ageMois >= 3:
+                        nourritureConsommee += CONSOMMATION_NOURITURE_GRAMMES_3_MOIS
+                    elif lapin.ageMois >= 2:
+                        nourritureConsommee += CONSOMMATION_NOURITURE_GRAMMES_2_MOIS
+
+                    # Gravidité
+                    print(lapin.sexe)
+                    print(lapin.moisGravide)
+                    if lapin.sexe == "F" and lapin.moisGravide is None:
+                        print("qsdsqd")
+                        lapin.moisGravide = elevage.ageMois
+                        lapin.save()
+                
+                balanceNouriture = elevage.nouritureGrammes + nouritureAcheteeGrammes - nourritureConsommee
+                if balanceNouriture < 0:
+                    balanceNouriture = 0
+                    # TODO: implementer décès
+
+                elevage.nouritureGrammes = balanceNouriture
+                elevage.cages = elevage.cages + cagesAchetees
+                elevage.argentCents = balanceArgent
+                elevage.ageMois = elevage.ageMois + 1
+                elevage.save()
+
+    form = ActionElevageForm()
+    return render(request, "app/voir_elevage.html", { "elevage": elevage,
+                                                    "form": form,
+                                                    "error": error})

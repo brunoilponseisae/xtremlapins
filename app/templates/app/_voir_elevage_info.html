@@ -1,6 +1,6 @@
      
             <h1>{{ elevage.nom }}</h1>
-            <h2>{{ elevage.ageMois }} mois</h2>
+            <h2>Age: {{ elevage.ageMois }} mois</h2>
             <div class="labelValue">
                   <div>Réserve de nouriture</div>
                   <div>{{ elevage.nouritureGrammes }} grammes</div>
@@ -11,10 +11,23 @@
             </div>
             <div class="labelValue">
                   <div>Banque</div>
-                  <div>{{ elevage.argentCents }} €</div>
+                  <div>{{ elevage.argentEuros }}</div>
             </div>
-            <div class="labelValue">
-                  <div>Nombre de lapins</div>
-                  <div>{{ elevage.nombreLapins }}</div>
-            </div>
+            
+           <table class="table">
+            <tr>
+                  <td>Age</td>
+                  <td>Sexe</td>
+                  <td>Gravide depuis</td>
+
+            </tr>
+            <h3>Lapins</h3>
+            {% for lapin in elevage.lapins.all %}
+                  <tr>
+                        <td>{{ lapin.ageMois }} mois</td>
+                        <td>{{ lapin.sexe }}</td>
+                        <td>{%if lapin.gravideDepuisMois %}{{ lapin.gravideDepuisMois }} mois{% endif %}</td>
+                  </tr>
+                  {% endfor %}
+            </table>
             

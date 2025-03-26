@@ -1,0 +1,12 @@
+{% load bootstrap5 %}
+
+<h1>Actions</h1>
+      <form class="form" method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% bootstrap_button button_type="submit" content="Passer le temps" %}
+
+            {% if error %}
+            <div class="alert alert-warning">{{ error }}</div>
+            {% endif %}
+      </form>

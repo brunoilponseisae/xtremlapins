@@ -12,3 +12,8 @@ class NouvelElevageForm(forms.ModelForm):
                 "cages": "Nombre de cages",
                 "argentCents" : "Banque (cents)"
                 }
+        
+class ActionElevageForm(forms.Form):
+    nouritureAcheteeGrammes = forms.IntegerField(label="Achat de nouriture (grammes)", initial=0)
+    lapinsVendus = forms.IntegerField(label="Vente de lapins", initial=0)
+    cagesAchetees = forms.IntegerField(label="Achat de cages", initial=0)
