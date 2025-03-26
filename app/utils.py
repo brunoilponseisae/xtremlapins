@@ -1,4 +1,4 @@
-from .models import Elevage, Individu
+from .models import Elevage, Individu, sort_lapins
 from .names import NOM_LAPINS
 import random
 
@@ -17,5 +17,19 @@ def creer_individu(elevage: Elevage, moisNaissance:int=None, sexe=None):
                     nom=NOM_LAPINS[indexNom],
                     sexe=sexe,
                     moisNaissance=moisNaissance,
-                    moisGravide=None
+                    moisGravide=None,
+                    statut="N",
                     ).save()
+
+# Tri des lapins
+# Dabord les males
+# Dabord les plus vieux
+def sort_lapins_vente(l1: Individu, l2: Individu):
+    if l1.sexe == "M" and l2.sexe=="F":
+        return -1
+    if l1.sexe == "F" and l2.sexe=="M":
+        return 1
+    return sort_lapins(l1, l2)
+
+def sort_lapins_nouriture(l1: Individu, l2: Individu):
+    return sort_lapins_vente(l2, l1)

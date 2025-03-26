@@ -14,3 +14,7 @@
     gap:10px;
     justify-content: space-between;
 }
+
+.availableOnly .notAvailable {
+    display: none;
+}

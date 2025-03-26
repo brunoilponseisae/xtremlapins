@@ -1,30 +1,39 @@
 {% load static %}
    
       <div class="card card-body">
-           <table class="table">
+           <table class="table availableOnly" id="listeLapins">
             <tr>
                   <td>Nom</td>
                   <td>Age</td>
                   <td>Sexe</td>
-                  <td>Gravide depuis</td>
-                  <td></td>
+                  <td>Statut</td>
+                  <td><i class="bi bi-eye" onclick="switchNotAvailable()"></i></td>
 
             </tr>
             <h3>Lapins</h3>
-            {% for lapin in elevage.lapins.all %}
-                  <tr>
+            {% for lapin in elevage.lapinsTries %}
+                  <tr 
+                  {%if lapin.statut == "V" or lapin.statut == "D" %}
+                        class="notAvailable"
+                  {% endif %}
+                  >
                         <td>{{ lapin.nom }}</td>
                         <td>{{ lapin.ageMois }} mois</td>
                         <td>{{ lapin.sexe }}</td>
-                        <td>{%if lapin.gravideDepuisMois %}{{ lapin.gravideDepuisMois }} mois{% endif %}</td>
+                        <td>{{lapin.statutText}}</td>
                         <td>
-                              {%if lapin.ageMois < 3 %}
-                                    <img src="{% static 'app/baby.jpg' %}" width="32px">
+                              {%if lapin.statut == "D" %}
+                                    <img src="{% static 'app/dead.jpg' %}" width="32px">
                               {% else %}
-                                    {%if lapin.sexe == "M" %}
-                                          <img src="{% static 'app/male.jpg' %}" width="32px">
+                              
+                                    {%if lapin.ageMois < 3 %}
+                                          <img src="{% static 'app/baby.jpg' %}" width="32px">
                                     {% else %}
-                                          <img src="{% static 'app/female.jpg' %}" width="32px">
+                                          {%if lapin.sexe == "M" %}
+                                                <img src="{% static 'app/male.jpg' %}" width="32px">
+                                          {% else %}
+                                                <img src="{% static 'app/female.jpg' %}" width="32px">
+                                          {% endif %}
                                     {% endif %}
                               {% endif %}
                         </td>
