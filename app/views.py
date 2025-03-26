@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Elevage
+from .models import Elevage, Individu
 from .forms import NouvelElevageForm
+import random
 
 def index(request):
     return render(request, "app/index.html", {})
@@ -11,8 +12,23 @@ def nouvel_elevage(request):
         if form.is_valid():
             nombreLapins = form.cleaned_data['nombreLapins']
             elevage = form.save()
-            for i in range(nombreLapins):
-                pass
+            
+            Individu(elevage=elevage, 
+                                sexe="M",
+                                moisNaissance=0
+                                ).save()
+            Individu(elevage=elevage, 
+                                sexe="F",
+                                moisNaissance=0
+                                ).save()
+            for i in range(nombreLapins-2):
+                sexe = "F"
+                if bool(random.getrandbits(1)):
+                    sexe = "M"
+                Individu(elevage=elevage, 
+                    sexe=sexe,
+                    moisNaissance=0
+                    ).save()
             return redirect("voir_elevage", elevage.id)
     else:
         form = NouvelElevageForm({

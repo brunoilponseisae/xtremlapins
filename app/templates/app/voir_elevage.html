@@ -4,27 +4,15 @@
 
 {% block content %}      
 <div class="row">
+      <div class="col-md-8">
+            <div style="display:flex;">
+                  <div>
+            {% include "app/_voir_elevage_info.html" with elevage=elevage %}
+      </div>
+            </div>
+      </div>
       <div class="col-md-4">
-      <h1>{{ elevage.nom }}</h1>
-      <h2>{{ elevage.ageMois }} mois</h2>
-      <div class="labelValue">
-            <div>Réserve de nouriture</div>
-            <div>{{ elevage.nouritureGrammes }} grammes</div>
+            {% include "app/_regles.html" %}
       </div>
-      <div class="labelValue">
-            <div>Nombre de cages</div>
-            <div>{{ elevage.cages }}</div>
-      </div>
-      <div class="labelValue">
-            <div>Banque</div>
-            <div>{{ elevage.argentCents }} €</div>
-      </div>
-</div>
-<div class="col-md-4">
-      
-</div>
-<div class="col-md-4">
-      {% include "app/_regles.html" %}
-</div>
 </div>
 {% endblock %}
