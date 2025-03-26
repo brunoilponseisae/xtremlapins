@@ -23,6 +23,7 @@ class Elevage(models.Model):
 
 class Individu(models.Model):
     elevage = models.ForeignKey(Elevage, on_delete=models.CASCADE, related_name='lapins')
+    nom = models.CharField(max_length=200)
     sexe = models.CharField(max_length=1)
     moisNaissance = models.IntegerField()
     moisGravide = models.IntegerField(null=True)
