@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Elevage, Individu
 from .forms import NouvelElevageForm, ActionElevageForm
-import random
+from .utils import creer_individu
 
 PRIX_GRAMME_NOURITURE_CENTS=0.1
 PRIX_VENTE_LAPIN_CENTS=100
@@ -18,26 +18,13 @@ def nouvel_elevage(request):
         if form.is_valid():
             nombreLapins = form.cleaned_data['nombreLapins']
             elevage = form.save()
-            
-            Individu(elevage=elevage, 
-                                sexe="M",
-                                moisNaissance=-3,
-                                moisGravide=None
-                                ).save()
-            Individu(elevage=elevage, 
-                                sexe="F",
-                                moisNaissance=-3,
-                                moisGravide=None
-                                ).save()
+
+            creer_individu(elevage, -3, "M")
+            creer_individu(elevage, -3, "F")
+
             for i in range(nombreLapins-2):
-                sexe = "F"
-                if bool(random.getrandbits(1)):
-                    sexe = "M"
-                Individu(elevage=elevage, 
-                    sexe=sexe,
-                    moisNaissance=-3,
-                    moisGravide=None
-                    ).save()
+                creer_individu(elevage, 0)
+                
             return redirect("voir_elevage", elevage.id)
     else:
         form = NouvelElevageForm({
