@@ -1,0 +1,35 @@
+{% load static %}
+   
+      <div class="card card-body">
+           <table class="table">
+            <tr>
+                  <td>Nom</td>
+                  <td>Age</td>
+                  <td>Sexe</td>
+                  <td>Gravide depuis</td>
+                  <td></td>
+
+            </tr>
+            <h3>Lapins</h3>
+            {% for lapin in elevage.lapins.all %}
+                  <tr>
+                        <td>{{ lapin.nom }}</td>
+                        <td>{{ lapin.ageMois }} mois</td>
+                        <td>{{ lapin.sexe }}</td>
+                        <td>{%if lapin.gravideDepuisMois %}{{ lapin.gravideDepuisMois }} mois{% endif %}</td>
+                        <td>
+                              {%if lapin.ageMois < 3 %}
+                                    <img src="{% static 'app/baby.jpg' %}" width="32px">
+                              {% else %}
+                                    {%if lapin.sexe == "M" %}
+                                          <img src="{% static 'app/male.jpg' %}" width="32px">
+                                    {% else %}
+                                          <img src="{% static 'app/female.jpg' %}" width="32px">
+                                    {% endif %}
+                              {% endif %}
+                        </td>
+                  </tr>
+                  {% endfor %}
+            </table>
+      </div>
+            

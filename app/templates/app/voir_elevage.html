@@ -4,15 +4,18 @@
 
 {% block content %}      
 <div class="row">
-      <div class="col-md-8">
-            <div>
-                   {% include "app/_voir_elevage_info.html" with elevage=elevage %}
-                  <hr/>
-                  {% include "app/_voir_elevage_action.html" with elevage=elevage form=form %}
+      <div class="col-md-6">
+            <div style="display:flex;flex-direction: column; gap: 20px">
+                  {% include "app/_voir_elevage_info.html" with elevage=elevage %}
+                  {% include "app/_voir_elevage_lapins.html" with elevage=elevage %}
             </div>
+            
       </div>
-      <div class="col-md-4">
-            {% include "app/_regles.html" %}
+      <div class="col-md-6">
+            <div style="display:flex;flex-direction: column; gap: 20px">
+                  {% include "app/_voir_elevage_action.html" with elevage=elevage form=form %}
+                  {% include "app/_regles.html" %}
+            </div>
       </div>
 </div>
 {% endblock %}

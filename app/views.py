@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Elevage, Individu
+from .models import Elevage
 from .forms import NouvelElevageForm, ActionElevageForm
 from .utils import creer_individu
+import random
 
 PRIX_GRAMME_NOURITURE_CENTS=0.1
 PRIX_VENTE_LAPIN_CENTS=100
 PRIX_CAGE_CENTS=100
 CONSOMMATION_NOURITURE_GRAMMES_2_MOIS=100
 CONSOMMATION_NOURITURE_GRAMMES_3_MOIS=250
+MAX_LAPEREAUX_PAR_PORTEE=12
 
 def index(request):
     return render(request, "app/index.html", {})
@@ -68,13 +70,20 @@ def voir_elevage(request, pk):
                     elif lapin.ageMois >= 2:
                         nourritureConsommee += CONSOMMATION_NOURITURE_GRAMMES_2_MOIS
 
-                    # Gravidité
-                    print(lapin.sexe)
-                    print(lapin.moisGravide)
-                    if lapin.sexe == "F" and lapin.moisGravide is None:
-                        print("qsdsqd")
-                        lapin.moisGravide = elevage.ageMois
-                        lapin.save()
+                    # Femelles
+                    if lapin.sexe == "F":
+                        # Deviennent gravide
+                        if lapin.moisGravide is None and lapin.ageMois < 4 * 12:
+                            lapin.moisGravide = elevage.ageMois
+                            lapin.save()
+                        # Mettent bas
+                        elif lapin.gravideDepuisMois >= 2:
+                            for i in range(random.randrange(MAX_LAPEREAUX_PAR_PORTEE) + 1):
+                                creer_individu(elevage)
+                            lapin.moisGravide = None
+                            lapin.save()
+                    
+                    
                 
                 balanceNouriture = elevage.nouritureGrammes + nouritureAcheteeGrammes - nourritureConsommee
                 if balanceNouriture < 0:

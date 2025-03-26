@@ -32,6 +32,7 @@ class Individu(models.Model):
     def ageMois(self):
         return self.elevage.ageMois - self.moisNaissance
 
+    @property
     def gravideDepuisMois(self):
         if self.moisGravide is not None:
             return self.elevage.ageMois - self.moisGravide
