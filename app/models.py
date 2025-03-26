@@ -8,6 +8,9 @@ class Elevage(models.Model):
     argentCents = models.IntegerField()
     ageMois = models.IntegerField(default=0)
 
+    def nombreLapins(self):
+        return Individu.objects.filter(elevage=self).count()
+
 
 class Individu(models.Model):
     elevage = models.ForeignKey(Elevage, on_delete=models.CASCADE)
