@@ -1,0 +1,22 @@
+{% extends "app/_base.html" %}
+{% load static %}
+{% load bootstrap5 %}
+
+{% block content %}      
+      <div class="row">
+            <div class="col-md-6">
+                  <h1>Elevages</h1>
+                  <table class="table">
+                        {% for elevage in elevages %}
+                        <tr>
+                              <td><a href="{% url 'voir_elevage' elevage.id %}">{{ elevage.nom }}</a></td>
+                              <td>{{ elevage.ageMois }} mois</td>
+                        </tr>
+                        {% endfor %}
+                  </table>
+            </div>
+            <div class="col-md-6">
+                  <img src="{% static 'app/elevage.jpg' %}" >
+            </div>
+      </div>
+{% endblock %}

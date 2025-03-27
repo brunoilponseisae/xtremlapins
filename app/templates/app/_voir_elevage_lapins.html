@@ -1,6 +1,7 @@
 {% load static %}
    
       <div class="card card-body">
+            <h3>Lapins</h3>
            <table class="table availableOnly" id="listeLapins">
             <tr>
                   <td>Nom</td>
@@ -10,7 +11,6 @@
                   <td><i class="bi bi-eye" onclick="switchNotAvailable()"></i></td>
 
             </tr>
-            <h3>Lapins</h3>
             {% for lapin in elevage.lapinsTries %}
                   <tr 
                   {%if lapin.statut == "V" or lapin.statut == "D" %}

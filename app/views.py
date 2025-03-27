@@ -62,7 +62,7 @@ def voir_elevage(request, pk):
             if balanceArgent < 0:
                 error = f"Vous n'avez pas assez d'argent pour ces achats (manque {-balanceArgent}€). Vendez plus de lapins!"
 
-            balanceNouriture = elevage.nouritureGrammes
+            balanceNouriture = elevage.nouritureGrammes + nouritureAcheteeGrammes
             if not error:
                 # Vente de lapins
                 lapinVendusDb = 0
@@ -120,3 +120,7 @@ def voir_elevage(request, pk):
     return render(request, "app/voir_elevage.html", { "elevage": elevage,
                                                     "form": form,
                                                     "error": error})
+
+def liste_elevages(request):
+    elevages = Elevage.objects.all()
+    return render(request, "app/liste_elevages.html", { "elevages": elevages })
