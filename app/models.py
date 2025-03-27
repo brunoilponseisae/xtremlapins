@@ -66,5 +66,5 @@ def sort_lapins(l1: Individu, l2: Individu):
     if l1.ageMois > l2.ageMois:
         return 1
     if l1.ageMois < l2.ageMois:
-        return 1
+        return -1
     return 0

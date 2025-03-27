@@ -11,6 +11,7 @@ PRIX_CAGE_CENTS = 100
 CONSOMMATION_NOURITURE_GRAMMES_2_MOIS = 100
 CONSOMMATION_NOURITURE_GRAMMES_3_MOIS = 250
 MAX_LAPEREAUX_PAR_PORTEE = 3
+MAX_LAPINS_PAR_CAGES = 6
 
 
 def index(request):
@@ -59,6 +60,9 @@ def voir_elevage(request, pk):
             if elevage.lapinsDisponibles.count() < lapinsVendus:
                 error = "Vous essayez de vendre plus de lapin que vous n'en avez."
 
+            if lapinsVendus < 0:
+                error = "Vous essayez de vendre un nomre négatif de lapins."
+
             if balanceArgent < 0:
                 error = f"Vous n'avez pas assez d'argent pour ces achats (manque {-balanceArgent}€). Vendez plus de lapins!"
 
@@ -74,9 +78,13 @@ def voir_elevage(request, pk):
                     lapin.save()
                     lapinVendusDb = lapinVendusDb + 1
 
+                maxLapins = MAX_LAPINS_PAR_CAGES * elevage.cages
+                nbLapins = 0
+
                 # Gestion des lapins restants
                 for lapin in sorted(elevage.lapinsDisponibles, key=cmp_to_key(sort_lapins_nouriture)):
                     if lapin.statut == "N":
+                        nbLapins = nbLapins + 1
                         # Consommation de nouriture
                         if lapin.ageMois >= 3:
                             balanceNouriture -= CONSOMMATION_NOURITURE_GRAMMES_3_MOIS
@@ -88,11 +96,18 @@ def voir_elevage(request, pk):
                             lapin.statut = "D"
                             lapin.save()
                             continue
+                        
+                        # Mort à cause de la surpopulation
+                        if nbLapins > maxLapins:
+                            lapin.statut = "D"
+                            lapin.save()
+                            continue
+
 
                         # Reproduction
                         if lapin.sexe == "F":
                             # Deviennent gravide
-                            if lapin.moisGravide is None and lapin.ageMois < 4 * 12:
+                            if lapin.moisGravide is None and lapin.ageMois < 4 * 12 and lapin.ageMois > 6:
                                 lapin.moisGravide = elevage.ageMois
                                 lapin.save()
                             # Mettent bas
