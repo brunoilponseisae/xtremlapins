@@ -1,19 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Elevage, Individu
+from .models import Elevage
 from .forms import NouvelElevageForm, ActionElevageForm
 from .utils import creer_individu, sort_lapins_nouriture, sort_lapins_vente
 import random
 from functools import cmp_to_key
 
-PRIX_GRAMME_NOURITURE_CENTS=0.1
-PRIX_VENTE_LAPIN_CENTS=100
-PRIX_CAGE_CENTS=100
-CONSOMMATION_NOURITURE_GRAMMES_2_MOIS=100
-CONSOMMATION_NOURITURE_GRAMMES_3_MOIS=250
-MAX_LAPEREAUX_PAR_PORTEE=3
+PRIX_GRAMME_NOURITURE_CENTS = 0.1
+PRIX_VENTE_LAPIN_CENTS = 100
+PRIX_CAGE_CENTS = 100
+CONSOMMATION_NOURITURE_GRAMMES_2_MOIS = 100
+CONSOMMATION_NOURITURE_GRAMMES_3_MOIS = 250
+MAX_LAPEREAUX_PAR_PORTEE = 3
+
 
 def index(request):
     return render(request, "app/index.html", {})
+
 
 def nouvel_elevage(request):
     if request.method == "POST":
@@ -27,20 +29,18 @@ def nouvel_elevage(request):
 
             for i in range(nombreLapins-2):
                 creer_individu(elevage, 0)
-                
+
             return redirect("voir_elevage", elevage.id)
     else:
         form = NouvelElevageForm({
                           "nom": "Mon elevage",
                           "nouritureGrammes": 10000,
                           "cages": 1,
-                          "argentCents": 1000 ,
+                          "argentCents": 1000,
                           "nombreLapins": 2
                           })
-        
-    
-    
-    return render(request, "app/nouvel_elevage.html", { "form": form})
+    return render(request, "app/nouvel_elevage.html", {"form": form})
+
 
 def voir_elevage(request, pk):
     elevage = get_object_or_404(Elevage, pk=pk)
@@ -55,10 +55,10 @@ def voir_elevage(request, pk):
             depenses = PRIX_CAGE_CENTS * cagesAchetees + PRIX_GRAMME_NOURITURE_CENTS * nouritureAcheteeGrammes
             recettes = lapinsVendus * PRIX_VENTE_LAPIN_CENTS
             balanceArgent = elevage.argentCents + recettes - depenses
-            
+
             if elevage.lapinsDisponibles.count() < lapinsVendus:
                 error = "Vous essayez de vendre plus de lapin que vous n'en avez."
-                
+
             if balanceArgent < 0:
                 error = f"Vous n'avez pas assez d'argent pour ces achats (manque {-balanceArgent}€). Vendez plus de lapins!"
 
@@ -66,7 +66,7 @@ def voir_elevage(request, pk):
             if not error:
                 # Vente de lapins
                 lapinVendusDb = 0
-                
+
                 for lapin in sorted(elevage.lapinsDisponibles, key=cmp_to_key(sort_lapins_vente)):
                     if lapinVendusDb >= lapinsVendus:
                         break
@@ -82,13 +82,12 @@ def voir_elevage(request, pk):
                             balanceNouriture -= CONSOMMATION_NOURITURE_GRAMMES_3_MOIS
                         elif lapin.ageMois >= 2:
                             balanceNouriture -= CONSOMMATION_NOURITURE_GRAMMES_2_MOIS
-                        
+
                         # Mort de faim
                         if balanceNouriture < 0:
                             lapin.statut = "D"
                             lapin.save()
                             continue
-
 
                         # Reproduction
                         if lapin.sexe == "F":
@@ -102,10 +101,6 @@ def voir_elevage(request, pk):
                                     creer_individu(elevage)
                                 lapin.moisGravide = None
                                 lapin.save()
-                
-                        
-                    
-                    
 
                 if balanceNouriture < 0:
                     balanceNouriture = 0
@@ -117,10 +112,11 @@ def voir_elevage(request, pk):
                 elevage.save()
 
     form = ActionElevageForm()
-    return render(request, "app/voir_elevage.html", { "elevage": elevage,
-                                                    "form": form,
-                                                    "error": error})
+    return render(request, "app/voir_elevage.html", {"elevage": elevage,
+                                                     "form": form,
+                                                     "error": error})
+
 
 def liste_elevages(request):
     elevages = Elevage.objects.all()
-    return render(request, "app/liste_elevages.html", { "elevages": elevages })
+    return render(request, "app/liste_elevages.html", {"elevages": elevages})

@@ -2,8 +2,6 @@ from django.db import models
 from functools import cmp_to_key
 
 
-
-
 class Elevage(models.Model):
     nom = models.CharField(max_length=200)
     nouritureGrammes = models.IntegerField()
@@ -18,7 +16,7 @@ class Elevage(models.Model):
     @property
     def nombreLapinsFemelles(self):
         return Individu.objects.filter(elevage=self, sexe="F").count()
-    
+
     @property
     def argentEuros(self):
         return f"{self.argentCents/100}€"
@@ -50,7 +48,7 @@ class Individu(models.Model):
     def gravideDepuisMois(self):
         if self.moisGravide is not None:
             return self.elevage.ageMois - self.moisGravide
-    
+
     @property
     def statutText(self):
         if self.statut == "N":
@@ -62,9 +60,7 @@ class Individu(models.Model):
             return "Décédé"
         if self.statut == "V":
             return "Vendu"
-        
 
-        
 
 def sort_lapins(l1: Individu, l2: Individu):
     if l1.ageMois > l2.ageMois:
