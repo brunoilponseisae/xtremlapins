@@ -63,12 +63,14 @@ class ElevageManager(models.Manager):
                     if balanceNouriture < 0:
                         lapin.statut = "D"
                         lapin.save()
+                        lapin.creer_evenement(f"Décès de {lapin.nom} - Mort de faim")
                         continue
 
                     # Mort à cause de la surpopulation
                     if nbLapinsDansCages > maxLapins:
                         lapin.statut = "D"
                         lapin.save()
+                        lapin.creer_evenement(f"Décès de {lapin.nom} - Surpopulation")
                         continue
 
                     # Reproduction
@@ -78,6 +80,7 @@ class ElevageManager(models.Manager):
                                 and lapin.ageMois < Config.MAX_AGE_MOIS_GRAVIDE
                                 and lapin.ageMois > Config.MIN_AGE_MOIS_GRAVIDE):
                             lapin.moisGravide = elevage.ageMois
+                            lapin.creer_evenement(f"{lapin.nom} devient gravide.")
                             lapin.save()
                         # Mettent bas
                         elif lapin.gravideDepuisMois is not None and lapin.gravideDepuisMois >= Config.DUREE_GRAVIDITE_MOIS:
@@ -85,6 +88,7 @@ class ElevageManager(models.Manager):
                                 Individu.objects.creer(elevage)
                             lapin.moisGravide = None
                             lapin.save()
+                            lapin.creer_evenement(f"{lapin.nom} met bas")
 
             if balanceNouriture < 0:
                 balanceNouriture = 0
@@ -94,6 +98,13 @@ class ElevageManager(models.Manager):
             elevage.argentCents = balanceArgent
             elevage.ageMois = elevage.ageMois + 1
             elevage.save()
+
+            if cagesAchetees > 0:
+                elevage.creer_evenement(f"Achat de {cagesAchetees} cages")
+            if nouritureAcheteeGrammes > 0:
+                elevage.creer_evenement(f"Achat de {nouritureAcheteeGrammes}g de nourriture")
+            if lapinsVendus > 0:
+                elevage.creer_evenement(f"Vente de {lapinsVendus} lapins")
 
         return (elevage, error)
 
@@ -106,6 +117,12 @@ class Elevage(models.Model):
     ageMois = models.IntegerField(default=0)
 
     objects = ElevageManager()
+
+    def creer_evenement(self, texte):
+        return Evenement(elevage=self,
+                         individu=None,
+                         ageMois=self.ageMois,
+                         texte=texte).save()
 
     @property
     def nombreLapinsMales(self):
@@ -136,6 +153,11 @@ class Elevage(models.Model):
         res = sorted(self.lapins.all(), key=cmp_to_key(sort_lapins))
         return res
 
+    @property
+    def sortedEvenements(self):
+        res = sorted(self.evenements.all(), key=lambda x: x.ageMois, reverse=True)
+        return res
+
 
 class IndividuManager(models.Manager):
     def creer(self, elevage: Elevage, moisNaissance: int = None, sexe=None):
@@ -149,13 +171,21 @@ class IndividuManager(models.Manager):
 
         indexNom = random.randrange(len(Config.NOM_LAPINS))
 
-        Individu(elevage=elevage,
-                 nom=Config.NOM_LAPINS[indexNom],
-                 sexe=sexe,
-                 moisNaissance=moisNaissance,
-                 moisGravide=None,
-                 statut="N",
-                 ).save()
+        individu = Individu(elevage=elevage,
+                            nom=Config.NOM_LAPINS[indexNom],
+                            sexe=sexe,
+                            moisNaissance=moisNaissance,
+                            moisGravide=None,
+                            statut="N",
+                            )
+        individu.save()
+
+        action = "Acquisition"
+        if moisNaissance >= 0:
+            action = "Naissance"
+        individu.creer_evenement(f"{action} de {individu.nom}")
+
+        return individu
 
 
 class Individu(models.Model):
@@ -168,6 +198,12 @@ class Individu(models.Model):
     statut = models.CharField(max_length=1)
 
     objects = IndividuManager()
+
+    def creer_evenement(self, texte):
+        return Evenement(elevage=self.elevage,
+                         individu=self,
+                         ageMois=self.elevage.ageMois,
+                         texte=texte).save()
 
     @property
     def ageMois(self):
@@ -189,6 +225,13 @@ class Individu(models.Model):
             return "Décédé"
         if self.statut == "V":
             return "Vendu"
+
+
+class Evenement(models.Model):
+    elevage = models.ForeignKey(Elevage, on_delete=models.CASCADE, related_name='evenements')
+    individu = models.ForeignKey(Individu, on_delete=models.CASCADE, related_name='evenements', null=True)
+    ageMois = models.IntegerField()
+    texte = models.CharField(max_length=200)
 
 
 def sort_lapins(l1: Individu, l2: Individu):

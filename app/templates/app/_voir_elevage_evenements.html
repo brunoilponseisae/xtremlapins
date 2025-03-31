@@ -1,0 +1,21 @@
+{% load static %}
+   
+      <div class="card card-body">
+           <h3>Evènements</h3>
+           <table class="table availableOnly" id="listeLapins">
+            <tr>
+                  <th>Individu</th>
+                  <th title="Age de l'élevage au moment de l'évènement">Moment</th>
+                  <th>Eveènement</th>
+            </tr>
+            {% for evenement in elevage.sortedEvenements %}
+                  <tr>
+                        <td>{{ evenement.individu.nom }}</td>
+                        <td>{{ evenement.ageMois }}</td>
+                        <td>{{ evenement.texte }}</td>
+                        
+                  </tr>
+                  {% endfor %}
+            </table>
+      </div>
+            
