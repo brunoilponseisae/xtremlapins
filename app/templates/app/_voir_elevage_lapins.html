@@ -4,11 +4,11 @@
             <h3>Lapins</h3>
            <table class="table availableOnly" id="listeLapins">
             <tr>
-                  <td>Nom</td>
-                  <td>Age</td>
-                  <td>Sexe</td>
-                  <td>Statut</td>
-                  <td><i class="bi bi-eye" onclick="switchNotAvailable()"></i></td>
+                  <th>Nom</th>
+                  <th>Age</th>
+                  <th>Sexe</th>
+                  <th>Statut</th>
+                  <td><i class="bi bi-eye" onclick="switchNotAvailable()" title="Alterner entre afficher uniquement les lapins actifs ou afficher tous les lapins" style="cursor: pointer;"></i></td>
 
             </tr>
             {% for lapin in elevage.lapinsTries %}

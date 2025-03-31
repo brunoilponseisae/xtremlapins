@@ -9,17 +9,17 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <p>Les lapines parviennent à maturité et peuvent se reproduire à l'âge de 6 mois et elles peuvent continuer à mettre bas pendant quatre ans. La gestation dure 1 mois, et l'animal peut mettre bas chaque fois de 1 à 12 lapereaux. Elle peut être de nouveau gravide quelques jours après avoir mis bas.</p>
+            <p>Les lapines parviennent à maturité et peuvent se reproduire à l'âge de {{ Config.MIN_AGE_MOIS_GRAVIDE }} mois et elles peuvent continuer à mettre bas pendant {{ Config.MAX_AGE_MOIS_GRAVIDE }} mois. La gestation dure {{ Config.DUREE_GRAVIDITE_MOIS }} mois, et l'animal peut mettre bas chaque fois de 1 à {{ config.MAX_LAPEREAUX_PAR_PORTEE }} lapereaux. Elle peut être de nouveau gravide quelques jours après avoir mis bas.</p>
             <p>Taille adulte vers 3 mois.</p>
             
             <h3>Alimentation </h3>
             <ul>	
-                <li>Adulte : 250g/jour</li>
-            	<li>Lapereau: lait maternel/1er mois, 100g/2ème mois, 250g/troisième mois</li>
+                <li>Adulte : {{ Config.CONSOMMATION_NOURITURE_GRAMMES_3_MOIS}}g/jour</li>
+            	<li>Lapereau: lait maternel/1er mois, {{ Config.CONSOMMATION_NOURITURE_GRAMMES_2_MOIS}}g/2ème mois, {{ Config.CONSOMMATION_NOURITURE_GRAMMES_3_MOIS}}g/troisième mois</li>
             </ul>
             <h3>Cages</h3>
             <ul>
-            <li> 6 individus maxi par cage, >10 surpopulation, maladie, mort, ennui, dépression, mort</li>
+            <li> {{ Config.MAX_LAPINS_PAR_CAGES }} individus maxi par cage, au delà mort</li>
             <li> Les lapereaux ne comptent pas le premier mois</li>
         </ul>
             <h3>Actions</h3>

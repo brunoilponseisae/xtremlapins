@@ -26,6 +26,14 @@ class Elevage(models.Model):
         return Individu.objects.filter(elevage=self, statut="N")
 
     @property
+    def lapinsMorts(self):
+        return Individu.objects.filter(elevage=self, statut="D")
+
+    @property
+    def lapinsVendus(self):
+        return Individu.objects.filter(elevage=self, statut="V")
+
+    @property
     def lapinsTries(self):
         res = sorted(self.lapins.all(), key=cmp_to_key(sort_lapins))
         return res

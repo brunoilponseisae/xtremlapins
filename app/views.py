@@ -4,15 +4,7 @@ from .forms import NouvelElevageForm, ActionElevageForm
 from .utils import creer_individu, sort_lapins_nouriture, sort_lapins_vente
 import random
 from functools import cmp_to_key
-
-PRIX_GRAMME_NOURITURE_CENTS = 0.1
-PRIX_VENTE_LAPIN_CENTS = 100
-PRIX_CAGE_CENTS = 100
-CONSOMMATION_NOURITURE_GRAMMES_2_MOIS = 100
-CONSOMMATION_NOURITURE_GRAMMES_3_MOIS = 250
-MAX_LAPEREAUX_PAR_PORTEE = 3
-MAX_LAPINS_PAR_CAGES = 6
-
+from .config import Config
 
 def index(request):
     return render(request, "app/index.html", {})
@@ -40,7 +32,7 @@ def nouvel_elevage(request):
                           "argentCents": 1000,
                           "nombreLapins": 2
                           })
-    return render(request, "app/nouvel_elevage.html", {"form": form})
+    return render(request, "app/nouvel_elevage.html", {"form": form })
 
 
 def voir_elevage(request, pk):
@@ -53,8 +45,8 @@ def voir_elevage(request, pk):
             lapinsVendus = form.cleaned_data['lapinsVendus']
             cagesAchetees = form.cleaned_data['cagesAchetees']
 
-            depenses = PRIX_CAGE_CENTS * cagesAchetees + PRIX_GRAMME_NOURITURE_CENTS * nouritureAcheteeGrammes
-            recettes = lapinsVendus * PRIX_VENTE_LAPIN_CENTS
+            depenses = Config.PRIX_CAGE_CENTS * cagesAchetees + Config.PRIX_GRAMME_NOURITURE_CENTS * nouritureAcheteeGrammes
+            recettes = lapinsVendus * Config.PRIX_VENTE_LAPIN_CENTS
             balanceArgent = elevage.argentCents + recettes - depenses
 
             if elevage.lapinsDisponibles.count() < lapinsVendus:
@@ -78,18 +70,19 @@ def voir_elevage(request, pk):
                     lapin.save()
                     lapinVendusDb = lapinVendusDb + 1
 
-                maxLapins = MAX_LAPINS_PAR_CAGES * elevage.cages
-                nbLapins = 0
+                maxLapins = Config.MAX_LAPINS_PAR_CAGES * elevage.cages
+                nbLapinsDansCages = 0
 
                 # Gestion des lapins restants
                 for lapin in sorted(elevage.lapinsDisponibles, key=cmp_to_key(sort_lapins_nouriture)):
                     if lapin.statut == "N":
-                        nbLapins = nbLapins + 1
+                        if lapin.ageMois >= 1:
+                            nbLapinsDansCages = nbLapinsDansCages + 1
                         # Consommation de nouriture
                         if lapin.ageMois >= 3:
-                            balanceNouriture -= CONSOMMATION_NOURITURE_GRAMMES_3_MOIS
+                            balanceNouriture -= Config.CONSOMMATION_NOURITURE_GRAMMES_3_MOIS
                         elif lapin.ageMois >= 2:
-                            balanceNouriture -= CONSOMMATION_NOURITURE_GRAMMES_2_MOIS
+                            balanceNouriture -= Config.CONSOMMATION_NOURITURE_GRAMMES_2_MOIS
 
                         # Mort de faim
                         if balanceNouriture < 0:
@@ -98,7 +91,7 @@ def voir_elevage(request, pk):
                             continue
                         
                         # Mort à cause de la surpopulation
-                        if nbLapins > maxLapins:
+                        if nbLapinsDansCages > maxLapins:
                             lapin.statut = "D"
                             lapin.save()
                             continue
@@ -107,12 +100,12 @@ def voir_elevage(request, pk):
                         # Reproduction
                         if lapin.sexe == "F":
                             # Deviennent gravide
-                            if lapin.moisGravide is None and lapin.ageMois < 4 * 12 and lapin.ageMois > 6:
+                            if lapin.moisGravide is None and lapin.ageMois < Config.MAX_AGE_MOIS_GRAVIDE and lapin.ageMois > Config.MIN_AGE_MOIS_GRAVIDE:
                                 lapin.moisGravide = elevage.ageMois
                                 lapin.save()
                             # Mettent bas
-                            elif lapin.gravideDepuisMois >= 2:
-                                for i in range(random.randrange(MAX_LAPEREAUX_PAR_PORTEE) + 1):
+                            elif lapin.gravideDepuisMois is not None and lapin.gravideDepuisMois >= Config.DUREE_GRAVIDITE_MOIS:
+                                for i in range(random.randrange(Config.MAX_LAPEREAUX_PAR_PORTEE) + 1):
                                     creer_individu(elevage)
                                 lapin.moisGravide = None
                                 lapin.save()
@@ -129,7 +122,9 @@ def voir_elevage(request, pk):
     form = ActionElevageForm()
     return render(request, "app/voir_elevage.html", {"elevage": elevage,
                                                      "form": form,
-                                                     "error": error})
+                                                     "error": error,
+                                                     "Config": Config
+                                                     })
 
 
 def liste_elevages(request):
