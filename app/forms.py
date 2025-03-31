@@ -4,7 +4,7 @@ from .config import Config
 
 
 class NouvelElevageForm(forms.ModelForm):
-    nombreLapins = forms.IntegerField(label="Nombre de lapins")
+    nombreLapins = forms.IntegerField(label="Nombre de lapins", min_value=2)
 
     class Meta:
         model = Elevage
@@ -18,6 +18,7 @@ class NouvelElevageForm(forms.ModelForm):
 
 
 class ActionElevageForm(forms.Form):
-    nouritureAcheteeGrammes = forms.IntegerField(label=f"Achat de nouriture ({Config.PRIX_GRAMME_NOURITURE_CENTS} cents par gramme)", initial=0)
+    nouritureAcheteeGrammes = forms.IntegerField(
+        label=f"Achat de nouriture ({Config.PRIX_GRAMME_NOURITURE_CENTS} cents par gramme)", initial=0)
     lapinsVendus = forms.IntegerField(label=f"Vente de lapins ({Config.PRIX_VENTE_LAPIN_CENTS} cents par lapin)", initial=0)
     cagesAchetees = forms.IntegerField(label=f"Achat de cages ({Config.PRIX_CAGE_CENTS} cents par cage)", initial=0)

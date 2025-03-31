@@ -5,7 +5,7 @@
       <form class="form" method="post">
             {% csrf_token %}
             {% bootstrap_form form %}
-            <button class="btn btn-primary" type="submit" style="width:100%">Passer le temps</button>
+            <button class="btn btn-primary" type="submit" style="width:100%">Passer un mois</button>
 
             {% if error %}
             <div class="alert alert-warning">{{ error }}</div>

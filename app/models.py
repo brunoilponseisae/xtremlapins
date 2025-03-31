@@ -1,5 +1,101 @@
 from django.db import models
 from functools import cmp_to_key
+from .config import Config
+import random
+
+
+class ElevageManager(models.Manager):
+    def creer(self, elevage, nombreLapins):
+        elevage.save()
+        Individu.objects.creer(elevage, -3, "M")
+        Individu.objects.creer(elevage, -3, "F")
+
+        for i in range(nombreLapins-2):
+            Individu.objects.creer(elevage, 0)
+
+        return elevage
+
+    def passerMois(self, pk, nouritureAcheteeGrammes, lapinsVendus, cagesAchetees):
+        elevage = self.get(pk=pk)
+
+        depenses = Config.PRIX_CAGE_CENTS * cagesAchetees + Config.PRIX_GRAMME_NOURITURE_CENTS * nouritureAcheteeGrammes
+        recettes = lapinsVendus * Config.PRIX_VENTE_LAPIN_CENTS
+        balanceArgent = elevage.argentCents + recettes - depenses
+
+        error = None
+
+        if elevage.lapinsDisponibles.count() < lapinsVendus:
+            error = "Vous essayez de vendre plus de lapin que vous n'en avez."
+
+        if lapinsVendus < 0:
+            error = "Vous essayez de vendre un nomre négatif de lapins."
+
+        if balanceArgent < 0:
+            error = f"Vous n'avez pas assez d'argent pour ces achats (manque {-balanceArgent}€). Vendez plus de lapins!"
+
+        balanceNouriture = elevage.nouritureGrammes + nouritureAcheteeGrammes
+        if not error:
+            # Vente de lapins
+            lapinVendusDb = 0
+
+            for lapin in sorted(elevage.lapinsDisponibles, key=cmp_to_key(sort_lapins_vente)):
+                if lapinVendusDb >= lapinsVendus:
+                    break
+                lapin.statut = "V"
+                lapin.save()
+                lapinVendusDb = lapinVendusDb + 1
+
+            maxLapins = Config.MAX_LAPINS_PAR_CAGES * elevage.cages
+            nbLapinsDansCages = 0
+
+            # Gestion des lapins restants
+            for lapin in sorted(elevage.lapinsDisponibles, key=cmp_to_key(sort_lapins_nouriture)):
+                if lapin.statut == "N":
+                    if lapin.ageMois >= 1:
+                        nbLapinsDansCages = nbLapinsDansCages + 1
+                    # Consommation de nouriture
+                    if lapin.ageMois >= 3:
+                        balanceNouriture -= Config.CONSOMMATION_NOURITURE_GRAMMES_3_MOIS
+                    elif lapin.ageMois >= 2:
+                        balanceNouriture -= Config.CONSOMMATION_NOURITURE_GRAMMES_2_MOIS
+
+                    # Mort de faim
+                    if balanceNouriture < 0:
+                        lapin.statut = "D"
+                        lapin.save()
+                        continue
+
+                    # Mort à cause de la surpopulation
+                    if nbLapinsDansCages > maxLapins:
+                        lapin.statut = "D"
+                        lapin.save()
+                        continue
+
+                    # Reproduction
+                    if lapin.sexe == "F":
+                        # Deviennent gravide
+                        if (lapin.moisGravide is None
+                                and lapin.ageMois < Config.MAX_AGE_MOIS_GRAVIDE
+                                and lapin.ageMois > Config.MIN_AGE_MOIS_GRAVIDE):
+                            lapin.moisGravide = elevage.ageMois
+                            lapin.save()
+                        # Mettent bas
+                        elif lapin.gravideDepuisMois is not None and lapin.gravideDepuisMois >= Config.DUREE_GRAVIDITE_MOIS:
+                            for i in range(random.randrange(Config.MAX_LAPEREAUX_PAR_PORTEE) + 1):
+                                Individu.objects.creer(elevage)
+                            lapin.moisGravide = None
+                            lapin.save()
+
+            if balanceNouriture < 0:
+                balanceNouriture = 0
+
+            elevage.nouritureGrammes = balanceNouriture
+            elevage.cages = elevage.cages + cagesAchetees
+            elevage.argentCents = balanceArgent
+            elevage.ageMois = elevage.ageMois + 1
+            elevage.save()
+
+        return (elevage, error)
 
 
 class Elevage(models.Model):
@@ -8,6 +104,8 @@ class Elevage(models.Model):
     cages = models.IntegerField()
     argentCents = models.IntegerField()
     ageMois = models.IntegerField(default=0)
+
+    objects = ElevageManager()
 
     @property
     def nombreLapinsMales(self):
@@ -39,6 +137,27 @@ class Elevage(models.Model):
         return res
 
 
+class IndividuManager(models.Manager):
+    def creer(self, elevage: Elevage, moisNaissance: int = None, sexe=None):
+        if sexe is None:
+            sexe = "F"
+            if bool(random.getrandbits(1)):
+                sexe = "M"
+
+        if moisNaissance is None:
+            moisNaissance = elevage.ageMois
+
+        indexNom = random.randrange(len(Config.NOM_LAPINS))
+
+        Individu(elevage=elevage,
+                 nom=Config.NOM_LAPINS[indexNom],
+                 sexe=sexe,
+                 moisNaissance=moisNaissance,
+                 moisGravide=None,
+                 statut="N",
+                 ).save()
+
+
 class Individu(models.Model):
     elevage = models.ForeignKey(Elevage, on_delete=models.CASCADE, related_name='lapins')
     nom = models.CharField(max_length=200)
@@ -47,6 +166,8 @@ class Individu(models.Model):
     moisDécès = models.IntegerField(null=True)
     moisGravide = models.IntegerField(null=True)
     statut = models.CharField(max_length=1)
+
+    objects = IndividuManager()
 
     @property
     def ageMois(self):
@@ -76,3 +197,15 @@ def sort_lapins(l1: Individu, l2: Individu):
     if l1.ageMois < l2.ageMois:
         return -1
     return 0
+
+
+def sort_lapins_vente(l1: Individu, l2: Individu):
+    if l1.sexe == "M" and l2.sexe == "F":
+        return -1
+    if l1.sexe == "F" and l2.sexe == "M":
+        return 1
+    return sort_lapins(l1, l2)
+
+
+def sort_lapins_nouriture(l1: Individu, l2: Individu):
+    return sort_lapins_vente(l2, l1)
