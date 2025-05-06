@@ -16,8 +16,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = [os.environ['CSRF_TRUSTED_ORIGINS']]
+ALLOWED_HOSTS = [os.environ['ALLOWED_HOSTS'], 'localhost']
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
